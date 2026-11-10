@@ -1,18 +1,13 @@
 
 /**
- * ESCUDO Digital v0.3.3
- * Motor hibrido de inferencia local.
- *
- * Correccion de falsos positivos por
- * recomendaciones preventivas.
- *
- * El modelo utiliza ejemplos ficticios.
- * No esta validado con adolescentes.
+ * ESCUDO Digital v0.3.4
+ * Inferencia hibrida local.
+ * Analisis de relaciones discursivas.
+ * No validado con poblacion real.
  * SPDX-License-Identifier: MIT
  */
 
 import { ML_MODEL } from './ml_model.mjs';
-
 import {
   analyzeMessage,
   normalizeText
@@ -21,6 +16,10 @@ import {
 const featureIndex = new Map(
   ML_MODEL.terms.map((term, index) => [term, index])
 );
+
+// ========================================
+// 1. CLASIFICADOR ESTADISTICO LOCAL
+// ========================================
 
 export function predictStatisticalCue(message) {
   const input = String(message ?? '')
@@ -80,16 +79,9 @@ export function predictStatisticalCue(message) {
   };
 }
 
-/**
- * Identifica consejos preventivos explicitos.
- *
- * No intenta resolver cualquier negacion.
- * Si el mensaje contiene amenazas, exigencias
- * o contrastes, no se aplica esta excepcion.
- *
- * Nunca elimina alertas detectadas por las
- * reglas linguisticas del motor principal.
- */
+// ========================================
+// 2. RECONOCIMIENTO DE CONSEJOS PROTECTORES
+// ========================================
 
 export function isClearProtectiveAdvice(
   message,
@@ -120,7 +112,6 @@ export function isClearProtectiveAdvice(
       );
   }
 
-  // normalizeText elimina las tildes.
   const contrastOrPressure =
     /\b(?:pero|aunque|sin embargo|excepto|a menos que|amenaza|chantajea|obliga|obligo|presiona|exige|exigio|insiste|si no|de lo contrario)\b/;
 
@@ -141,22 +132,154 @@ export function isClearProtectiveAdvice(
     );
 }
 
-/**
- * Analisis hibrido.
- *
- * 1. Reglas linguisticas.
- * 2. Clasificador estadistico.
- * 3. Revision de consejo preventivo.
- * 4. Integracion de alertas.
- *
- * Nunca certifica que un mensaje sea seguro.
- */
+// ========================================
+// 3. ANALISIS CONTEXTUAL DEL DISCURSO
+// ========================================
+
+export function analyzeContextualSignals(
+  message,
+  language = 'es'
+) {
+  const text = normalizeText(
+    String(message ?? '').slice(0, 2000)
+  );
+
+  if (!text) return [];
+
+  const cues = [];
+
+  if (language === 'en') {
+
+    // Chantaje indirecto en ingles.
+    const condition =
+      /\bif\b.{0,90}\b(?:you\s+(?:do\s+not|don't|refuse|won't|will\s+not)|you\s+fail\s+to)\b/;
+
+    const consequence =
+      /\b(?:will|going to|gonna|everyone will|they will|i'll)\b.{0,90}\b(?:know|see|read|hear|receive|find out|share|post|publish|show|tell|leak)\b|\b(?:everyone|your classmates|your friends|your parents)\b.{0,80}\b(?:will|going to|find out)\b/;
+
+    const recipients =
+      /\b(?:everyone|classmates|schoolmates|friends|parents|family|teacher|class|school|group|contacts)\b/;
+
+    const privateMaterial =
+      /\b(?:our|your|private|personal|intimate|secret)\b.{0,35}\b(?:conversations?|chats?|messages?|photos?|pictures?|screenshots?|videos?)\b|\b(?:conversations?|chats?|messages?|photos?|pictures?|screenshots?|videos?)\b.{0,25}\b(?:private|personal|intimate|secret)\b|\b(?:what you told me|what you wrote to me|your secret)\b/;
+
+    if (
+      condition.test(text) &&
+      consequence.test(text) &&
+      recipients.test(text) &&
+      privateMaterial.test(text)
+    ) {
+      cues.push({
+        id: 'contextual_blackmail',
+        source: 'contextual-rules',
+        level: 'high',
+        label: 'Possible indirect blackmail or exposure',
+        explanation:
+          'The message connects a condition or refusal with possible disclosure of private content to other people. This may be coercive; context still matters.'
+      });
+    }
+
+    // Presion afectiva en ingles.
+    const emotionalCondition =
+      /\bif\b.{0,45}\b(?:trusted|trust|loved|love|cared|care)\b.{0,20}\b(?:me|us)\b/;
+
+    const pressure =
+      /\b(?:wouldn't mind|would not mind|shouldn't have a problem|would have no problem|prove|tell me|share|send|show|give me|let me know|where are you|who are you with)\b/;
+
+    const sensitive =
+      /\b(?:where you are|your location|who you are with|your address|your password|your passcode|your private photos|your intimate photos)\b/;
+
+    if (
+      emotionalCondition.test(text) &&
+      pressure.test(text) &&
+      sensitive.test(text)
+    ) {
+      cues.push({
+        id: 'contextual_emotional_pressure',
+        source: 'contextual-rules',
+        level: 'medium',
+        label: 'Possible emotional pressure for private information',
+        explanation:
+          'Trust or affection is linked to a request for personal information. This may be undue pressure, although context and consent remain relevant.'
+      });
+    }
+
+    return cues;
+  }
+
+  // ========================================
+  // CHANTAJE INDIRECTO EN ESPANOL
+  // ========================================
+
+  const condition =
+    /\bsi\b.{0,90}\b(?:no|te\s+niegas|te\s+rehusas|te\s+resistes|rechazas)\b/;
+
+  const consequence =
+    /\b(?:van\s+a|va\s+a|voy\s+a|les\s+voy\s+a|se\s+van\s+a|podran|se\s+enteraran|sabran|conoceran|veran|leeran|recibiran|mostrare|publicare|contare|compartire|revelare|se\s+lo\s+dire)\b/;
+
+  const recipients =
+    /\b(?:companeros?|amigos?|padres|familia|colegio|escuela|clase|grupo|todos|gente|profesores?|contactos?)\b/;
+
+  const privateMaterial =
+    /\b(?:nuestras?|nuestros?|tus|tuyas?|privadas?|personales?|intimas?|secretas?)\b.{0,38}\b(?:conversaciones?|chats?|mensajes?|capturas?|fotos?|videos?|imagenes?)\b|\b(?:conversaciones?|chats?|mensajes?|capturas?|fotos?|videos?|imagenes?)\b.{0,28}\b(?:privadas?|personales?|intimas?|secretas?)\b|\b(?:lo\s+que\s+me\s+contaste|lo\s+que\s+me\s+escribiste|tus\s+secretos)\b/;
+
+  if (
+    condition.test(text) &&
+    consequence.test(text) &&
+    recipients.test(text) &&
+    privateMaterial.test(text)
+  ) {
+    cues.push({
+      id: 'contextual_blackmail',
+      source: 'contextual-rules',
+      level: 'high',
+      label: 'Posible chantaje indirecto o amenaza de exposicion',
+      explanation:
+        'El mensaje vincula una condicion o negativa con la posible divulgacion de contenido privado a otras personas. Puede indicar coercion; el contexto es importante.'
+    });
+  }
+
+  // ========================================
+  // MANIPULACION AFECTIVA EN ESPANOL
+  // ========================================
+
+  const emotionalCondition =
+    /\bsi\b.{0,45}\b(?:confias|confiaras|quisieras|quieres|amaras|amas|creyeras)\b.{0,22}\b(?:en\s+mi|a\s+mi|me)\b|\bsi\b.{0,24}\bme\s+(?:quieres|amas|quisieras|amaras)\b/;
+
+  const pressure =
+    /\b(?:no\s+tendrias\s+problemas?|me\s+dirias|me\s+contarias|me\s+mostrarias|me\s+enviarias|no\s+te\s+molestaria|no\s+deberia\s+importarte|no\s+tendrias\s+inconvenientes?|demuestrame|pruebame|contarme|decirme|mostrarme|enviarme|mandarme|pasarme|compartirme|revelarme|dime|cuentame|quiero\s+saber)\b/;
+
+  const sensitive =
+    /\b(?:donde\s+estas|con\s+quien\s+(?:estas|andas|sales)|tu\s+ubicacion|tu\s+direccion|tu\s+contrasena|tu\s+clave|tu\s+codigo|fotos?\s+(?:privadas?|intimas?)|imagenes?\s+(?:privadas?|intimas?))\b/;
+
+  if (
+    emotionalCondition.test(text) &&
+    pressure.test(text) &&
+    sensitive.test(text)
+  ) {
+    cues.push({
+      id: 'contextual_emotional_pressure',
+      source: 'contextual-rules',
+      level: 'medium',
+      label: 'Posible presion afectiva para obtener datos personales',
+      explanation:
+        'La confianza o el afecto se presentan como condicion para revelar informacion personal. Puede ser presion indebida, pero se requiere contexto y considerar el consentimiento.'
+    });
+  }
+
+  return cues;
+}
+
+// ========================================
+// 4. INTEGRACION DEL MOTOR HIBRIDO
+// ========================================
 
 export function analyzeHybridMessage(
   message,
   language = 'es'
 ) {
-  const lang = language === 'en' ? 'en' : 'es';
+  const lang =
+    language === 'en' ? 'en' : 'es';
 
   const rules = analyzeMessage(message, lang);
 
@@ -173,7 +296,7 @@ export function analyzeHybridMessage(
     String(message).slice(0, 2000)
   );
 
-  // No anular alertas de reglas explicitas.
+  // No eliminar las alertas de las reglas.
   const clearAdvice =
     rules.categories.length === 0 &&
     isClearProtectiveAdvice(message, lang);
@@ -184,6 +307,17 @@ export function analyzeHybridMessage(
 
   const cues = rules.categories.slice();
 
+  // Incorporar relaciones discursivas.
+  const contextual =
+    analyzeContextualSignals(message, lang);
+
+  for (const signal of contextual) {
+    if (!cues.some(item => item.id === signal.id)) {
+      cues.push(signal);
+    }
+  }
+
+  // Alerta generada por IA estadistica.
   if (modelFlag && cues.length === 0) {
     cues.push({
       id: 'ml_warning',
@@ -201,7 +335,10 @@ export function analyzeHybridMessage(
   }
 
   const urgency =
-    rules.urgency === 'priority'
+    rules.urgency === 'priority' ||
+    cues.some(
+      item => item.id === 'contextual_blackmail'
+    )
       ? 'priority'
       : cues.length
         ? 'attention'
