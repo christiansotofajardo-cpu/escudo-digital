@@ -1,0 +1,229 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#151515">
+  <meta name="description" content="ESCUDO Digital: prototipo educativo de análisis lingüístico de mensajes y prevención de riesgos digitales. El análisis ocurre en tu dispositivo.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="src/styles.css">
+  <title>ESCUDO Digital | Reconoce las señales</title>
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skip">Saltar al contenido</a>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="brand" aria-label="ESCUDO Digital">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M16 2.5 28 7v8.5c0 8-4.7 12-12 14-7.3-2-12-6-12-14V7L16 2.5Z" stroke="currentColor" stroke-width="2"/>
+            <path d="m10 16 4 4 8-9" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <strong>ESCUDO <span>Digital</span></strong>
+          <small data-i18n="brandDesc">Seguridad en conversaciones digitales</small>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="header-version">v0.3 · IA local</span>
+        <div class="lang-switch" role="group" aria-label="Language / Idioma">
+          <button id="lang-es" class="lang-btn active" type="button" aria-pressed="true">ES</button>
+          <button id="lang-en" class="lang-btn" type="button" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="eyebrow">PROTOTIPO DE PREVENCIÓN DIGITAL</p>
+          <h1 id="hero-title" data-i18n="heroTitle">Si un mensaje te inquieta, mereces entender por qué.</h1>
+          <p class="hero-lead" data-i18n="heroLead">Explora posibles señales de presión, amenaza o manipulación en un mensaje. Sin vigilancia, sin cuentas y sin entregar tus conversaciones a un servidor.</p>
+          <div class="trust-points">
+            <span><span class="dot"></span><span data-i18n="trust1">Análisis en tu dispositivo</span></span>
+            <span><span class="dot"></span><span data-i18n="trust2">No guardamos mensajes</span></span>
+            <span><span class="dot"></span><span data-i18n="trust3">Español / English</span></span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-ring ring-one"></div>
+          <div class="art-ring ring-two"></div>
+          <div class="hero-shield">
+            <svg viewBox="0 0 128 142" fill="none">
+              <path d="M64 6 118 25v37c0 35-21 57-54 72C31 119 10 97 10 62V25L64 6Z" fill="#fff" stroke="#161616" stroke-width="4"/>
+              <path d="m40 69 15 15 34-40" stroke="#161616" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="art-label art-label-top">PRIVACY FIRST</div>
+          <div class="art-label art-label-bottom">SAFETY BY DESIGN</div>
+        </div>
+      </section>
+
+      <nav class="tab-bar" aria-label="Main navigation">
+        <button type="button" class="tab active" id="tab-analyze" aria-controls="panel-analyze" aria-selected="true" role="tab" data-i18n="tabAnalyze">Analizar</button>
+        <button type="button" class="tab" id="tab-learn" aria-controls="panel-learn" aria-selected="false" role="tab" data-i18n="tabLearn">Aprender</button>
+        <button type="button" class="tab" id="tab-about" aria-controls="panel-about" aria-selected="false" role="tab" data-i18n="tabAbout">Privacidad y ayuda</button>
+      </nav>
+
+      <div class="tab-panel" id="panel-analyze" role="tabpanel" aria-labelledby="tab-analyze">
+        <div class="workspace-grid">
+          <section class="panel primary-panel" aria-labelledby="analyze-title">
+            <div class="section-top">
+              <span class="step-tag" data-i18n="stepOne">01 / OBSERVAR</span>
+              <span class="section-symbol" aria-hidden="true">↗</span>
+            </div>
+            <h2 id="analyze-title" data-i18n="analyzeTitle">¿Qué dice el mensaje?</h2>
+            <p class="secondary-text" data-i18n="analyzeDesc">Escribe o pega un mensaje que te preocupe. El análisis ocurre solamente en este dispositivo.</p>
+            <label class="field-label" for="messageInput" data-i18n="fieldLabel">Mensaje para analizar</label>
+            <textarea id="messageInput" maxlength="2000" rows="7" autocomplete="off" spellcheck="true" placeholder="Ej.: Si no haces lo que digo, voy a publicar tus fotos."></textarea>
+            <div class="textarea-footer">
+              <small data-i18n="privacyTip">Consejo: evita incluir nombres, números o direcciones.</small>
+              <span id="charCount" aria-live="polite">0 / 2000</span>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="analyzeBtn" type="button">
+                <span data-i18n="analyzeButton">Analizar mensaje</span>
+                <span aria-hidden="true">→</span>
+              </button>
+              <button class="btn btn-secondary" id="clearBtn" type="button" data-i18n="clearButton">Borrar</button>
+            </div>
+            <div class="examples">
+              <p class="examples-heading" data-i18n="examplesHeading">PROBAR CON EJEMPLOS FICTICIOS</p>
+              <div class="example-pills" id="examplePills"></div>
+            </div>
+          </section>
+
+          <aside class="panel guidance-panel" aria-labelledby="guide-title">
+            <div class="section-top">
+              <span class="step-tag" data-i18n="stepTwo">02 / COMPRENDER</span>
+              <span class="section-symbol" aria-hidden="true">◉</span>
+            </div>
+            <h2 id="guide-title" data-i18n="guideTitle">¿Qué está buscando ESCUDO?</h2>
+            <p class="secondary-text" data-i18n="guideDesc">Busca patrones lingüísticos de presión, no intenta diagnosticar personas ni determinar si hubo un delito.</p>
+            <div class="signal-list" id="signalList">
+              <div class="signal-item">
+                <span>01</span>
+                <div>
+                  <strong data-i18n="signal1Title">Amenazas y chantaje</strong>
+                  <small data-i18n="signal1Desc">Difundir imágenes o causar daño como presión.</small>
+                </div>
+              </div>
+              <div class="signal-item">
+                <span>02</span>
+                <div>
+                  <strong data-i18n="signal2Title">Manipulación y secretos</strong>
+                  <small data-i18n="signal2Desc">Afecto condicionado o silencio impuesto.</small>
+                </div>
+              </div>
+              <div class="signal-item">
+                <span>03</span>
+                <div>
+                  <strong data-i18n="signal3Title">Datos personales</strong>
+                  <small data-i18n="signal3Desc">Solicitudes de claves, ubicación o privacidad.</small>
+                </div>
+              </div>
+              <div class="signal-item">
+                <span>04</span>
+                <div>
+                  <strong data-i18n="signal4Title">Intimidad y consentimiento</strong>
+                  <small data-i18n="signal4Desc">Peticiones para desvestirse o mostrar el cuerpo.</small>
+                </div>
+              </div>
+            </div>
+            <div class="guidance-note">
+              <strong data-i18n="guideNoteTitle">Importante</strong>
+              <p data-i18n="guideNote">Un mensaje sin alertas no significa que sea seguro. El contexto y la experiencia de la persona importan.</p>
+            </div>
+          </aside>
+        </div>
+
+        <section id="resultPanel" class="panel result-panel" aria-live="polite" aria-atomic="false" hidden>
+          <div class="result-top">
+            <div>
+              <p class="eyebrow" data-i18n="resultEyebrow">RESULTADO DEL ANÁLISIS</p>
+              <h2 id="resultHeading"></h2>
+            </div>
+            <span id="resultTag" class="result-tag"></span>
+          </div>
+          <p id="resultSummary" class="secondary-text"></p>
+          <p id="modelMethod" class="result-footnote" aria-label="Método de inteligencia artificial"></p>
+          <div id="resultSignals" class="result-signals"></div>
+          <div class="next-box">
+            <h3 data-i18n="nextTitle">¿Qué puedes hacer?</h3>
+            <ul id="nextSteps"></ul>
+          </div>
+          <p class="result-footnote" data-i18n="resultFoot">Evaluación experimental con reglas e inteligencia artificial local. Puede omitir señales o producir alertas incorrectas. No reemplaza el apoyo de una persona ni servicios de emergencia.</p>
+        </section>
+      </div>
+
+      <div class="tab-panel" id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" hidden>
+        <section class="panel learning-panel">
+          <p class="eyebrow" data-i18n="learnEyebrow">LABORATORIO DE DECISIONES</p>
+          <h2 data-i18n="learnTitle">Practiquemos con situaciones ficticias</h2>
+          <p class="secondary-text" data-i18n="learnIntro">Elige la primera respuesta más segura. No necesitas compartir experiencias personales.</p>
+          <div class="learning-progress" id="learningProgress"></div>
+          <div class="scenario-card">
+            <p class="step-tag" id="scenarioCount"></p>
+            <blockquote id="scenarioText"></blockquote>
+            <p class="question" data-i18n="scenarioQuestion">¿Qué sería más seguro hacer primero?</p>
+            <div id="scenarioChoices" class="choice-list"></div>
+            <div id="scenarioFeedback" class="scenario-feedback" aria-live="polite" hidden></div>
+          </div>
+          <button class="btn btn-primary" type="button" id="nextScenario" hidden>
+            <span data-i18n="nextScenario">Siguiente situación</span>
+            <span>→</span>
+          </button>
+        </section>
+      </div>
+
+      <div class="tab-panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden>
+        <div class="about-grid">
+          <section class="panel">
+            <p class="eyebrow" data-i18n="privacyEyebrow">PRIVACIDAD POR DISEÑO</p>
+            <h2 data-i18n="privacyTitle">Tus palabras permanecen en tu dispositivo.</h2>
+            <p data-i18n="privacyText">El motor analiza el texto en el navegador, sin cuentas, estadísticas, nube, cookies ni almacenamiento de mensajes. Puedes borrar el texto en cualquier momento. Si instalas la aplicación, el navegador guarda solamente los archivos necesarios para abrirla sin conexión.</p>
+            <div class="info-stack">
+              <div>
+                <strong data-i18n="limitTitle">Límites de la herramienta</strong>
+                <p data-i18n="limitText">Combina reglas con un modelo local de aprendizaje automático entrenado con ejemplos ficticios. No interpreta de forma fiable ironía, contextos complejos, imágenes ni conversaciones completas. No determina culpabilidad, delitos o seguridad.</p>
+              </div>
+              <div>
+                <strong data-i18n="researchTitle">Estado de investigación</strong>
+                <p data-i18n="researchText">Prototipo v0.3. Las pruebas técnicas usan únicamente mensajes ficticios. No hay validación clínica, escolar ni con adolescentes.</p>
+              </div>
+              <div>
+                <strong data-i18n="installTitle">¿Hay que instalarlo?</strong>
+                <p data-i18n="installText">No. Abre la página desde tu navegador. En dispositivos compatibles puedes añadirla a la pantalla de inicio.</p>
+              </div>
+            </div>
+          </section>
+          <section class="panel support-panel">
+            <p class="eyebrow" data-i18n="supportEyebrow">PERSONAS Y REDES DE APOYO</p>
+            <h2 data-i18n="supportTitle">No tienes que resolverlo sola o solo.</h2>
+            <p data-i18n="supportIntro">Si te sientes amenazada o en riesgo, conversa con una persona adulta de confianza o con un servicio local de protección. Si hay peligro inmediato, contacta a los servicios de emergencia de tu localidad.</p>
+            <div class="support-callout">
+              <small data-i18n="chileLabel">SI ESTÁS EN CHILE</small>
+              <div class="support-number">147</div>
+              <strong data-i18n="chileTitle">Fono Niños — Carabineros de Chile</strong>
+              <p data-i18n="chileDesc">Orientación gratuita y confidencial para niñas, niños y adolescentes, 24 horas.</p>
+              <a href="https://www.chileatiende.gob.cl/fichas/385" target="_blank" rel="noopener noreferrer" data-i18n="chileLink">Información oficial ↗</a>
+            </div>
+            <p class="small-muted" data-i18n="supportNote">El 147 es un recurso de Chile. Si estás en otro país, busca un servicio de protección infantil de tu localidad.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <span>ESCUDO Digital · IDE SpA · Prototype v0.3</span>
+      <span data-i18n="footer">Herramienta experimental, no monitorización automática.</span>
+    </footer>
+  </div>
+  <script type="module" src="src/main.mjs"></script>
+</body>
+</html>
