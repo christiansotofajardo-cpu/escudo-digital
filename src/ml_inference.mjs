@@ -1,31 +1,28 @@
 
 /**
- * ESCUDO Digital v0.3
- * Inferencia local de aprendizaje automático.
+ * ESCUDO Digital v0.3.3
+ * Motor hibrido de inferencia local.
  *
- * Modelo: TF-IDF de caracteres y regresión logística.
- * Entrenamiento: mensajes ficticios.
- * No utiliza servidores externos.
+ * Correccion de falsos positivos por
+ * recomendaciones preventivas.
  *
+ * El modelo utiliza ejemplos ficticios.
+ * No esta validado con adolescentes.
  * SPDX-License-Identifier: MIT
  */
 
 import { ML_MODEL } from './ml_model.mjs';
-import { analyzeMessage } from './engine.mjs';
 
-// Índice de características aprendidas.
+import {
+  analyzeMessage,
+  normalizeText
+} from './engine.mjs';
+
 const featureIndex = new Map(
   ML_MODEL.terms.map((term, index) => [term, index])
 );
 
-/**
- * Calcula la respuesta estadística del modelo.
- *
- * La puntuación NO representa una probabilidad
- * calibrada de peligro real.
- */
 export function predictStatisticalCue(message) {
-
   const input = String(message ?? '')
     .toLowerCase()
     .replace(/\s+/g, ' ')
@@ -33,25 +30,21 @@ export function predictStatisticalCue(message) {
 
   const counts = new Map();
 
-  // Extraer n-gramas de caracteres.
   for (const word of input.split(' ')) {
-
     if (!word) continue;
 
-    const padded = ' ' + word + ' ';
+    const padded = ` ${word} `;
 
     for (
       let n = ML_MODEL.ngram_min;
       n <= ML_MODEL.ngram_max;
       n++
     ) {
-
       for (
         let i = 0;
         i + n <= padded.length;
         i++
       ) {
-
         const gram = padded.slice(i, i + n);
         const index = featureIndex.get(gram);
 
@@ -68,14 +61,11 @@ export function predictStatisticalCue(message) {
   let norm2 = 0;
   let numerator = 0;
 
-  // Aplicar pesos TF-IDF aprendidos.
   for (const [index, count] of counts) {
-
     const value =
       (1 + Math.log(count)) * ML_MODEL.idf[index];
 
     norm2 += value * value;
-
     numerator += value * ML_MODEL.coef[index];
   }
 
@@ -83,31 +73,91 @@ export function predictStatisticalCue(message) {
     ML_MODEL.bias +
     (norm2 > 0 ? numerator / Math.sqrt(norm2) : 0);
 
-  const confidence = 1 / (1 + Math.exp(-logit));
-
   return {
-    confidence,
+    confidence: 1 / (1 + Math.exp(-logit)),
     modelVersion: ML_MODEL.version,
     modelType: 'supervised-char-ngrams'
   };
 }
 
 /**
- * Motor híbrido:
- * 1. Analiza señales lingüísticas explícitas.
- * 2. Ejecuta el modelo estadístico.
- * 3. Combina ambos resultados.
+ * Identifica consejos preventivos explicitos.
  *
- * Nunca declara que un mensaje sea seguro.
+ * No intenta resolver cualquier negacion.
+ * Si el mensaje contiene amenazas, exigencias
+ * o contrastes, no se aplica esta excepcion.
+ *
+ * Nunca elimina alertas detectadas por las
+ * reglas linguisticas del motor principal.
  */
+
+export function isClearProtectiveAdvice(
+  message,
+  language = 'es'
+) {
+  const text = normalizeText(message);
+
+  if (!text) return false;
+
+  if (language === 'en') {
+    const contrastOrPressure =
+      /\b(?:but|however|unless|except|threatens?|blackmails?|forces?|pressures?|demands?|if you don't|if you do not|otherwise)\b/;
+
+    if (contrastOrPressure.test(text)) {
+      return false;
+    }
+
+    const noSharing =
+      /\b(?:never|do not|don't)\s+(?:(?:ever|have to|need to|should|must)\s+)?(?:send|share|give|show|post|publish|reveal|forward|take off)\b.{0,85}\b(?:intimate|private|nude|naked|photo|picture|image|password|code|location|clothes|body)\b/;
+
+    const educationFrame =
+      /\b(?:teacher|counselor|counsellor|professor|parent|mother|father|school|advised|advice|told me|reminded me|recommended|should never)\b/;
+
+    return noSharing.test(text) &&
+      (
+        educationFrame.test(text) ||
+        /^(?:please\s+)?(?:never|do not|don't)\b/.test(text)
+      );
+  }
+
+  // normalizeText elimina las tildes.
+  const contrastOrPressure =
+    /\b(?:pero|aunque|sin embargo|excepto|a menos que|amenaza|chantajea|obliga|obligo|presiona|exige|exigio|insiste|si no|de lo contrario)\b/;
+
+  if (contrastOrPressure.test(text)) {
+    return false;
+  }
+
+  const noSharing =
+    /\b(?:no|nunca|jamas)\s+(?:(?:debo|debes|debemos|deben|deberia|deberias|hay que|tengo que|se debe|se puede|puedo|puedes|vayas a)\s+)?(?:enviar|mandar|compartir|dar|mostrar|publicar|revelar|reenviar|pasar|entregar|desvestirme|desnudarse|desvestirse)\b.{0,85}\b(?:fotos?|fotografias?|imagenes?|videos?|intimas?|privadas?|desnudas?|claves?|contrasenas?|codigos?|ubicacion|cuerpo|ropa|datos?|desconocidos?)\b/;
+
+  const educationFrame =
+    /\b(?:profesor|profesora|docente|orientador|orientadora|maestra|maestro|colegio|escuela|mama|papa|madre|padre|me dijo|me explico|me enseno|recomiendan|recomendo|aconsejan|consejo|recomendacion)\b/;
+
+  return noSharing.test(text) &&
+    (
+      educationFrame.test(text) ||
+      /^(?:no|nunca|jamas)\b/.test(text)
+    );
+}
+
+/**
+ * Analisis hibrido.
+ *
+ * 1. Reglas linguisticas.
+ * 2. Clasificador estadistico.
+ * 3. Revision de consejo preventivo.
+ * 4. Integracion de alertas.
+ *
+ * Nunca certifica que un mensaje sea seguro.
+ */
+
 export function analyzeHybridMessage(
   message,
   language = 'es'
 ) {
-
   const lang = language === 'en' ? 'en' : 'es';
 
-  // Primera capa: reglas lingüísticas.
   const rules = analyzeMessage(message, lang);
 
   if (rules.status === 'empty') {
@@ -119,30 +169,22 @@ export function analyzeHybridMessage(
     };
   }
 
-  // Segunda capa: aprendizaje automático.
   const predicted = predictStatisticalCue(
     String(message).slice(0, 2000)
   );
 
-  // Evitar algunas alertas incorrectas
-  // ante instrucciones explícitas de prevención.
-  const preventative = lang === 'es'
-    ? /\b(?:dice|dijo|pide|pidio|recomienda|aconseja)\s+que\s+no\s+(?:me\s+|te\s+)?(?:desnude|desvista|desvistas|desnudes|quite\s+la\s+ropa)\b/
-        .test(String(message).toLowerCase())
-    : /\b(?:do not|don't|never)\s+(?:undress|strip|take\s+off\s+your\s+clothes)\b/
-        .test(String(message).toLowerCase());
+  // No anular alertas de reglas explicitas.
+  const clearAdvice =
+    rules.categories.length === 0 &&
+    isClearProtectiveAdvice(message, lang);
 
-  // Umbral experimental, no validado clínicamente.
   const modelFlag =
     predicted.confidence >= 0.60 &&
-    !(preventative && rules.categories.length === 0);
+    !clearAdvice;
 
   const cues = rules.categories.slice();
 
-  // Incorporar señal de IA cuando las reglas
-  // no identificaron señales explícitas.
   if (modelFlag && cues.length === 0) {
-
     cues.push({
       id: 'ml_warning',
       source: 'machine-learning',
@@ -158,7 +200,6 @@ export function analyzeHybridMessage(
     });
   }
 
-  // Prioridad determinada por las señales explícitas.
   const urgency =
     rules.urgency === 'priority'
       ? 'priority'
